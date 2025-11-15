@@ -1,3 +1,13 @@
+// **** 新增的程式碼 ****
+// 建立一個對照表，將英文 action 轉換為符號
+const operatorSymbols = {
+    'add': '+',
+    'subtract': '−', // 注意：這裡用的是「減號」而非「連字號」
+    'multiply': '×',
+    'divide': '÷'
+};
+// ***********************
+
 const calculator = document.querySelector('.calculator');
 const keys = calculator.querySelector('.calculator-keys');
 const display = calculator.querySelector('.calculator-screen');
@@ -49,29 +59,43 @@ function inputDecimal(dot) {
 function handleOperator(nextOperator) {
     const inputValue = parseFloat(displayValue);
 
+    // **** 修改的部分 (1/2) ****
+    // 透過對照表取得要顯示的「符號」
+    const displaySymbol = operatorSymbols[nextOperator];
+    // *************************
+
     if (firstValue === null && !isNaN(inputValue)) {
         firstValue = inputValue;
-        previousOperationText = displayValue + ' ' + nextOperator; // 顯示當前輸入和操作符
+        
+        // **** 修改的部分 (2/2) ****
+        // 使用 displaySymbol 來顯示，而不是 nextOperator
+        previousOperationText = displayValue + ' ' + displaySymbol; 
     } else if (operator && !isNaN(inputValue)) {
+        
+        // 取得「上一個」運算符的符號
+        const previousDisplaySymbol = operatorSymbols[operator];
+        
         const result = calculate(firstValue, inputValue, operator);
-        displayValue = String(parseFloat(result.toFixed(7))); // 限制小數點，避免浮點數問題
+        displayValue = String(parseFloat(result.toFixed(7))); 
         firstValue = result;
-        previousOperationText = `${previousOperationText.split(' ')[0]} ${operator} ${inputValue} =`; // 更新上一個運算
+        
+        // 這裡也使用符號
+        previousOperationText = `${previousOperationText.split(' ')[0]} ${previousDisplaySymbol} ${inputValue} =`; 
     }
 
     waitingForSecondValue = true;
-    operator = nextOperator;
+    operator = nextOperator; // 內部邏輯仍然使用英文 "add", "multiply"
     updateDisplay();
 }
 
 function calculate(first, second, op) {
-    if (op === 'add' || op === '+') {
+    if (op === 'add') {
         return first + second;
-    } else if (op === 'subtract' || op === '-') {
+    } else if (op === 'subtract') {
         return first - second;
-    } else if (op === 'multiply' || op === '*') {
+    } else if (op === 'multiply') {
         return first * second;
-    } else if (op === 'divide' || op === '/') {
+    } else if (op === 'divide') {
         return first / second;
     }
     return second;
@@ -101,8 +125,8 @@ keys.addEventListener('click', e => {
     if (!e.target.matches('button')) return;
 
     const key = e.target;
-    const action = key.dataset.action; // 使用 data-action 屬性
-    const keyContent = key.textContent; // 按鈕顯示的內容
+    const action = key.dataset.action; 
+    const keyContent = key.textContent; 
 
     if (key.classList.contains('key-number')) {
         inputNumber(keyContent);
@@ -113,10 +137,10 @@ keys.addEventListener('click', e => {
         if (action === 'calculate') {
             handleOperator(operator); // '=' 鍵執行上一個操作
             previousOperationText = ''; // 清空上一個操作顯示
-            waitingForSecondValue = true; // 準備開始新的計算
-            operator = null; // 清除操作符
+            waitingForSecondValue = true; 
+            operator = null; 
         } else {
-            handleOperator(action);
+            handleOperator(action); // 傳入英文 action
         }
         return;
     }
