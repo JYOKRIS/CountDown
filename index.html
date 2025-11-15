@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculater</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="calculator">
+        <div class="calculator-display">
+            <div class="previous-operation"></div> <input type="text" class="calculator-screen" value="0" disabled />
+        </div>
+
+        <div class="calculator-keys">
+            <button type="button" class="key-function" data-action="backspace">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path d="M22 3.41L20.59 2 12 10.59 3.41 2 2 3.41 10.59 12 2 20.59 3.41 22 12 13.41 20.59 22 22 20.59 13.41 12z"/>
+                </svg>
+            </button> <button type="button" class="key-function" data-action="clear">AC</button>
+            <button type="button" class="key-function" data-action="percent">%</button>
+            <button type="button" class="key-operator" data-action="divide">÷</button>
+
+            <button type="button" class="key-number" value="7">7</button>
+            <button type="button" class="key-number" value="8">8</button>
+            <button type="button" class="key-number" value="9">9</button>
+            <button type="button" class="key-operator" data-action="multiply">×</button>
+
+            <button type="button" class="key-number" value="4">4</button>
+            <button type="button" class="key-number" value="5">5</button>
+            <button type="button" class="key-number" value="6">6</button>
+            <button type="button" class="key-operator" data-action="subtract">−</button>
+
+            <button type="button" class="key-number" value="1">1</button>
+            <button type="button" class="key-number" value="2">2</button>
+            <button type="button" class="key-number" value="3">3</button>
+            <button type="button" class="key-operator" data-action="add">+</button>
+
+            <button type="button" class="key-function" data-action="plus-minus">±</button>
+            <button type="button" class="key-number" value="0">0</button>
+            <button type="button" class="key-number" data-action="decimal">.</button>
+            <button type="button" class="key-operator" data-action="calculate">=</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

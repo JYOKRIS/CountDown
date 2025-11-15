@@ -1,0 +1,126 @@
+html {
+    font-size: 62.5%; /* 1rem = 10px */
+    box-sizing: border-box;
+}
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: inherit;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #000; /* 背景全黑 */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; /* Apple 風格字體 */
+    color: #fff;
+}
+
+.calculator {
+    width: 300px; /* 調整計算機整體寬度 */
+    border-radius: 20px; /* 圓角邊框 */
+    overflow: hidden; /* 確保內容不超出圓角 */
+    background-color: #000; /* 計算機背景也為黑 */
+}
+
+.calculator-display {
+    padding: 20px;
+    padding-bottom: 0; /* 底部沒有額外留白 */
+    text-align: right;
+    color: #fff;
+}
+
+.previous-operation {
+    font-size: 1.8rem;
+    min-height: 2.2rem; /* 確保有足夠高度 */
+    color: #a0a0a0; /* 較淡的顏色 */
+    margin-bottom: 5px; /* 與主顯示屏的間距 */
+    white-space: nowrap; /* 不換行 */
+    overflow: hidden;
+    text-overflow: ellipsis; /* 超出部分顯示省略號 */
+}
+
+.calculator-screen {
+    width: 100%;
+    font-size: 6.5rem; /* 更大的字體 */
+    border: none;
+    background-color: transparent; /* 背景透明 */
+    color: #fff;
+    text-align: right;
+    padding-right: 0px;
+    padding-left: 0px;
+    box-sizing: border-box;
+    font-weight: 300; /* 較細的字體 */
+    outline: none; /* 移除點擊時的藍色框 */
+}
+
+.calculator-keys {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 四欄 */
+    gap: 12px; /* 按鈕間距 */
+    padding: 15px; /* 內邊距 */
+}
+
+button {
+    height: 60px; /* 按鈕高度 */
+    width: 60px; /* 按鈕寬度，保持正方形 */
+    border-radius: 50%; /* 圓形按鈕 */
+    border: none;
+    font-size: 2.8rem; /* 按鈕字體大小 */
+    color: #fff;
+    cursor: pointer;
+    display: flex; /* 使用 flex 居中內容 */
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.1s ease-in-out; /* 過渡效果 */
+    outline: none;
+    font-weight: 300; /* 按鈕文字也用細字體 */
+}
+
+/* 數字鍵顏色 */
+.key-number {
+    background-color: #333333; /* 深灰色 */
+}
+
+/* 數字鍵 hover 效果 */
+.key-number:hover {
+    background-color: #555555;
+}
+
+/* 功能鍵顏色 (AC, %, ±, 刪除) */
+.key-function {
+    background-color: #a6a6a6; /* 淺灰色 */
+    color: #000; /* 黑色文字 */
+}
+
+.key-function:hover {
+    background-color: #bfbfbf;
+}
+
+/* 運算符鍵顏色 (+, -, ×, ÷, =) */
+.key-operator {
+    background-color: #ff9500; /* 橘色 */
+}
+
+.key-operator:hover {
+    background-color: #ffb347;
+}
+
+/* 刪除鍵的 SVG 圖標顏色 */
+.key-function svg {
+    fill: #000; /* 確保 SVG 圖標顏色是黑色 */
+    width: 28px; /* 調整 SVG 大小 */
+    height: 28px;
+}
+
+/* 按下時的視覺回饋（可選，增加真實感） */
+button:active {
+    filter: brightness(85%);
+}
+
+/* 等於號按鈕有特殊 Grid 排列 */
+/* 因為 HTML 結構已經調整成所有按鈕都是一樣的，所以不需要特殊的 grid-area */
+/* 而是所有按鈕都是圓形，排列在一條線上 */
