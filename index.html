@@ -8,13 +8,12 @@
   <!-- 引入 Google Fonts（七段顯示器與多款科技/數位字體） -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Press+Start+2P&family=Share+Tech+Mono&family=VT323&family=VT323&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Press+Start+2P&family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
 
   <style>
     /* 七段顯示器字體 (7-Segment) */
     @font-face {
       font-family: 'SevenSegment';
-      src: url('https://cdnjs.cloudflare.com/ajax/libs/fittext.js/1.2.0/fittext.min.js') format('woff'); /* fallback identifier */
       src: url('https://fonts.cdnfonts.com/s/16142/D7M.woff') format('woff');
       font-weight: normal;
       font-style: normal;
@@ -54,26 +53,50 @@
       cursor: pointer;
     }
 
-    /* 大數字樣式 */
+    /* 大數字基礎樣式 */
     .timer-display {
-      font-size: min(55vw, 55vh);
       font-weight: 400;
-      line-height: 1;
+      line-height: 0.85;
       text-align: center;
-      letter-spacing: -0.04em; /* 縮短數字間距 */
+      letter-spacing: -0.06em;
       font-variant-numeric: tabular-nums;
       font-feature-settings: "tnum";
       white-space: nowrap;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
       transition: font-family 0.2s ease;
       font-family: 'SevenSegment', sans-serif;
     }
 
-    /* 字體類別 */
-    .font-f1 { font-family: 'SevenSegment', sans-serif; letter-spacing: -0.02em; }
+    /* 直向螢幕：尺寸稍微縮小，避免過滿 */
+    @media (orientation: portrait) {
+      .timer-display {
+        font-size: min(85vw, 72vh);
+      }
+    }
+
+    /* 橫向螢幕：維持極致大尺寸 */
+    @media (orientation: landscape) {
+      .timer-display {
+        font-size: min(100vw, 92vh);
+      }
+    }
+
+    /* 毫秒數字（小字體無小數點） */
+    .ms-digit {
+      font-size: 0.28em;
+      letter-spacing: -0.02em;
+      margin-left: 0.05em;
+      opacity: 0.9;
+    }
+
+    /* 各款字體風格類別 */
+    .font-f1 { font-family: 'SevenSegment', sans-serif; letter-spacing: -0.04em; }
     .font-f2 { font-family: 'Orbitron', sans-serif; letter-spacing: -0.06em; }
-    .font-f3 { font-family: 'VT323', monospace; letter-spacing: 0.02em; }
+    .font-f3 { font-family: 'VT323', monospace; letter-spacing: -0.02em; }
     .font-f4 { font-family: 'Share Tech Mono', monospace; letter-spacing: -0.05em; }
-    .font-f5 { font-family: 'Press Start 2P', cursive; letter-spacing: -0.1em; font-size: min(40vw, 40vh); }
+    .font-f5 { font-family: 'Press Start 2P', cursive; letter-spacing: -0.08em; font-size: min(65vw, 60vh); }
 
     /* 極簡抽屜式設定選單 */
     .settings-drawer {
@@ -98,7 +121,7 @@
       transform: translateX(0);
     }
 
-    /* 字體選擇按鈕列 */
+    /* 字體選擇列 */
     .font-options {
       display: flex;
       gap: 10px;
@@ -184,7 +207,7 @@
 </head>
 <body>
 
-  <!-- 滿版計時器 display -->
+  <!-- 滿版計時器 Display -->
   <div class="timer-container" id="timerContainer">
     <div class="timer-display font-f1" id="timerDisplay">30</div>
   </div>
@@ -219,60 +242,83 @@
 
   <script>
     // 狀態變數
-    let defaultSeconds = 30;
-    let currentSeconds = 30;
+    let defaultDurationMs = 30000; // 預設毫秒
+    let remainingMs = 30000;       // 剩餘毫秒
     let isRunning = false;
-    let timerInterval = null;
+    let animationFrameId = null;
+    let lastTimestamp = null;
     let selectedFontClass = 'font-f1';
 
     // DOM 元素
-    const timerContainer = document.getElementById('timerContainer');
     const timerDisplay = document.getElementById('timerDisplay');
     const settingsDrawer = document.getElementById('settingsDrawer');
     const customInput = document.getElementById('customInput');
 
-    // 畫面更新
+    // 畫面更新邏輯 (大於等於 10 秒只顯示秒；小於 10 秒顯示秒+毫秒，無小數點)
     function updateDisplay() {
-      timerDisplay.textContent = currentSeconds;
+      if (remainingMs >= 10000) {
+        const seconds = Math.ceil(remainingMs / 1000);
+        timerDisplay.textContent = seconds;
+      } else {
+        const totalSec = Math.max(0, remainingMs / 1000);
+        const secPart = Math.floor(totalSec);
+        const msPart = Math.floor((totalSec - secPart) * 100);
+        const msFormatted = String(msPart).padStart(2, '0');
+
+        // 無小數點，毫秒為小字體
+        timerDisplay.innerHTML = `${secPart}<span class="ms-digit">${msFormatted}</span>`;
+      }
     }
 
-    // 觸發結束 3 下短震動
+    // 結束 3 下短震動
     function triggerEndVibration() {
       if ('vibrate' in navigator) {
-        // [震動, 暫停, 震動, 暫停, 震動]
         navigator.vibrate([100, 100, 100, 100, 100]);
+      }
+    }
+
+    // 高精度 Render 動畫迴圈
+    function tick(timestamp) {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const elapsed = timestamp - lastTimestamp;
+      lastTimestamp = timestamp;
+
+      remainingMs -= elapsed;
+
+      if (remainingMs <= 0) {
+        remainingMs = 0;
+        updateDisplay();
+        pauseTimer();
+        triggerEndVibration();
+        return;
+      }
+
+      updateDisplay();
+      if (isRunning) {
+        animationFrameId = requestAnimationFrame(tick);
       }
     }
 
     // 開始計時
     function startTimer() {
       if (isRunning) return;
-      if (currentSeconds <= 0) {
-        currentSeconds = defaultSeconds;
+      if (remainingMs <= 0) {
+        remainingMs = defaultDurationMs;
         updateDisplay();
       }
       isRunning = true;
-      timerInterval = setInterval(() => {
-        if (currentSeconds > 0) {
-          currentSeconds--;
-          updateDisplay();
-          if (currentSeconds === 0) {
-            pauseTimer();
-            triggerEndVibration();
-          }
-        } else {
-          pauseTimer();
-        }
-      }, 1000);
+      lastTimestamp = null;
+      animationFrameId = requestAnimationFrame(tick);
     }
 
     // 暫停計時
     function pauseTimer() {
       isRunning = false;
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
       }
+      lastTimestamp = null;
     }
 
     // 切換暫停 / 開始
@@ -291,7 +337,7 @@
     // 重置並繼續倒數 (由右向左滑動)
     function resetAndStart() {
       pauseTimer();
-      currentSeconds = defaultSeconds;
+      remainingMs = defaultDurationMs;
       updateDisplay();
       startTimer();
     }
@@ -299,7 +345,7 @@
     // 開啟設定選單 (由左向右滑動)
     function openDrawer() {
       pauseTimer();
-      customInput.value = defaultSeconds;
+      customInput.value = Math.round(defaultDurationMs / 1000);
       settingsDrawer.classList.add('open');
     }
 
@@ -324,12 +370,11 @@
     function applySettings() {
       const val = parseInt(customInput.value, 10);
       if (!isNaN(val) && val > 0) {
-        defaultSeconds = val;
-        currentSeconds = val;
+        defaultDurationMs = val * 1000;
+        remainingMs = defaultDurationMs;
       }
-      // 套用字體樣式
-      timerDisplay.className = 'timer-display ' + selectedFontClass;
       
+      timerDisplay.className = 'timer-display ' + selectedFontClass;
       updateDisplay();
       closeDrawer();
       startTimer();
@@ -354,30 +399,28 @@
       const deltaY = touchEndY - touchStartY;
       const elapsedTime = Date.now() - touchStartTime;
 
-      // 如果點擊在設定 Drawer 內部，不觸發手勢
       if (settingsDrawer.contains(e.target) && settingsDrawer.classList.contains('open')) {
         return;
       }
 
-      // 手勢判斷閾值
       const minSwipeDistance = 50;
       const maxOffAxisDistance = 80;
 
       if (Math.abs(deltaX) > minSwipeDistance && Math.abs(deltaY) < maxOffAxisDistance && elapsedTime < 500) {
         if (deltaX < 0) {
-          // 右向左滑：Reset 並繼續倒數
+          // 右向左滑：Reset 並自動繼續倒數
           resetAndStart();
         } else {
           // 左向右滑：開啟設定
           openDrawer();
         }
       } else if (Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10) {
-        // 純點擊：暫停或開始
+        // 單點：暫停或開始
         toggleTimer();
       }
     }, { passive: true });
 
-    // 初始化自動啟動
+    // 初始化啟動
     updateDisplay();
     startTimer();
   </script>
