@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>CountDown</title>
   
-  <!-- 引入 Google Fonts（七段顯示器與多款科技/數位字體） -->
+  <!-- 引入 Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Press+Start+2P&family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
@@ -53,12 +53,12 @@
       cursor: pointer;
     }
 
-    /* 大數字基礎樣式 */
+    /* 大數字基礎樣式：強制使用固定寬度字元防止跳動 */
     .timer-display {
       font-weight: 400;
       line-height: 0.85;
       text-align: center;
-      letter-spacing: -0.06em;
+      letter-spacing: -0.04em;
       font-variant-numeric: tabular-nums;
       font-feature-settings: "tnum";
       white-space: nowrap;
@@ -69,26 +69,37 @@
       font-family: 'SevenSegment', sans-serif;
     }
 
-    /* 直向螢幕：尺寸稍微縮小，避免過滿 */
+    /* 秒數主體容器 */
+    .sec-digit {
+      display: inline-block;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 毫秒數字：設定固定寬度與等寬對齊，徹底防止跳動 */
+    .ms-digit {
+      display: inline-block;
+      font-size: 0.28em;
+      letter-spacing: 0;
+      width: 2.1ch; /* 固定寬度為 2.1 個字元寬 */
+      text-align: left;
+      font-variant-numeric: tabular-nums;
+      margin-left: 0.08em;
+      opacity: 0.9;
+    }
+
+    /* 直向螢幕：尺寸稍微縮小 */
     @media (orientation: portrait) {
       .timer-display {
         font-size: min(85vw, 72vh);
       }
     }
 
-    /* 橫向螢幕：維持極致大尺寸 */
+    /* 橫向螢幕：極致大尺寸 */
     @media (orientation: landscape) {
       .timer-display {
         font-size: min(100vw, 92vh);
       }
-    }
-
-    /* 毫秒數字（小字體無小數點） */
-    .ms-digit {
-      font-size: 0.28em;
-      letter-spacing: -0.02em;
-      margin-left: 0.05em;
-      opacity: 0.9;
     }
 
     /* 各款字體風格類別 */
@@ -242,8 +253,8 @@
 
   <script>
     // 狀態變數
-    let defaultDurationMs = 30000; // 預設毫秒
-    let remainingMs = 30000;       // 剩餘毫秒
+    let defaultDurationMs = 30000;
+    let remainingMs = 30000;
     let isRunning = false;
     let animationFrameId = null;
     let lastTimestamp = null;
@@ -254,7 +265,7 @@
     const settingsDrawer = document.getElementById('settingsDrawer');
     const customInput = document.getElementById('customInput');
 
-    // 畫面更新邏輯 (大於等於 10 秒只顯示秒；小於 10 秒顯示秒+毫秒，無小數點)
+    // 畫面更新邏輯 (加強防抖動)
     function updateDisplay() {
       if (remainingMs >= 10000) {
         const seconds = Math.ceil(remainingMs / 1000);
@@ -265,8 +276,8 @@
         const msPart = Math.floor((totalSec - secPart) * 100);
         const msFormatted = String(msPart).padStart(2, '0');
 
-        // 無小數點，毫秒為小字體
-        timerDisplay.innerHTML = `${secPart}<span class="ms-digit">${msFormatted}</span>`;
+        // 使用獨立 span 固定毫秒寬度，解決高頻率抖動
+        timerDisplay.innerHTML = `<span class="sec-digit">${secPart}</span><span class="ms-digit">${msFormatted}</span>`;
       }
     }
 
